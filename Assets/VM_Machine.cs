@@ -21,17 +21,18 @@ public class VM_Machine
         ram = new int[ram_size];
         for (int i = 0; i < payload.Length; i++)
         {
-            Debug.Log("Length is" + i);
+            //Debug.Log("Length is" + i);
             ram[entrypoint + i] = payload[i];
         }
         //set the stack pointer to I guess nothing. for now.
         SP = callstack.Count;
     }
 
-    public void Step()
+    public int Step()
     {
         int OpcodeByte = FetchByte(PC);
-        Debug.Log("Register 0 is " + registers[0]);
+        Debug.Log("The opcode is " + OpcodeByte);
+        //Debug.Log("Register 0 is " + registers[0]);
         switch (OpcodeByte) {
             case 0:
                 NOP();
@@ -159,8 +160,8 @@ public class VM_Machine
 
                 
         }
-       
 
+        return OpcodeByte;
     }
 
  // Use this for initialization
@@ -245,12 +246,14 @@ public class VM_Machine
         //GET VALUE BYTES FROM OPCODE
         Get4Bytes(bytes);
         //GET THE REGISTER
+        Debug.Log("Getting register at pc address" + PC);
         int Regnum = FetchByte(PC);
         int Num = ReadNum(bytes, 3);
         //CALL MEMORY WRITE FUNCTION
         Debug.Log(Regnum);
         Debug.Log("Storing Value" + Num + " in Ram Address " + registers[Regnum] + " pointed to by Register #" + Regnum ) ;
         StoreValueToMem(Num, registers[Regnum], ram);
+        
     }
 
     //0X06
@@ -767,6 +770,8 @@ public class VM_Machine
         //PERFORM THE JUMP WITH EXTREMESPEED
         //GOTTA GO FAST
         PC = Pointer;
+        Debug.Log("Pointer is " + Pointer);
+        Debug.Log("This code was reached");
         //DONE
     }
 
@@ -915,8 +920,8 @@ public class VM_Machine
     {
         int value = ram[PC_];
         PC = PC_ + 1;
-        Debug.Log("PC is " + PC);
-        Debug.Log("Fetched " + value);
+        //Debug.Log("PC is " + PC);
+        //Debug.Log("Fetched " + value);
         return value;
     }
 
@@ -931,7 +936,7 @@ public class VM_Machine
     public void StoreValueToMem(int Value, int Pointer, int[] ram) {
         //CREATE THE BYTES ARRAY
         int[] bytes = new int[32]; //this is overflow I guess just to be safe? I can't remember.
-        Debug.Log("Value is " + Value);
+        //Debug.Log("Value is " + Value);
         get(Value, 8, 0, bytes);
         for (int i = 0; i < 3; i++) {
             ram[Pointer] = bytes[i];
@@ -943,9 +948,11 @@ public class VM_Machine
     public void Get4Bytes(int[] bytes)
     {
         //HELPER FUNCTION TO GET 4 BYTES FROM PC
+        bytes[0] = FetchByte(PC);
+        bytes[1] = FetchByte(PC);
+        bytes[2] = FetchByte(PC);
+        bytes[3] = FetchByte(PC);
 
-        for (int i = 0; i < 3; i++)
-            bytes[i] = FetchByte(PC);
     }
             
         
@@ -977,26 +984,27 @@ public int GetMemValue(int POINTER) {
         //THIS SHOULD PUT THE BYTES TOGETHER
         int NUM = ReadNum(bytes, 3);
         int VALUE = NUM;
-
+        Debug.Log("The value was " + VALUE);
         return VALUE;
     }
 
     //HELPER FUNCTION GET4BYTES GENERIC
+        //attempted repairing this function hope nothing breaks.
     public int GET4RAMBYTES(int Pointer, int[] array) {
         for (int i = 0; i < 3; i++)
         {
-            int point = FetchRamByte(Pointer, array);
-            Pointer = point;
+           array[i] = FetchRamByte(Pointer, ram);
+           Pointer++;
         }
         return Pointer;
 
 }
 
     //GET A BYTE FROM ANY RAM
-    public int FetchRamByte(int pointer, int[] ar) {
-    int byte_ = ar[pointer];
-    pointer++;
-    return pointer;
+        public int FetchRamByte(int pointer, int[] ar) {
+        int byte_ = ar[pointer];
+        return byte_;
+       
     }
 
 
